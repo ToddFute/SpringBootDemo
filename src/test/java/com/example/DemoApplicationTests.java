@@ -15,6 +15,7 @@ import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.xpath;
 
 
 @ContextConfiguration(classes = DemoApplication.class)
@@ -27,7 +28,7 @@ public class DemoApplicationTests {
 	private MockMvc mvc;
 
 	@Test
-	public void getHello() throws Exception {
+	public void getWidget() throws Exception {
 		mvc.perform(MockMvcRequestBuilders.get("/widget").accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
@@ -36,4 +37,13 @@ public class DemoApplicationTests {
 				.andExpect(jsonPath("$.y", is(7)));
 	}
 
+	@Test
+	public void getWidgetAsXml() throws Exception {
+		mvc.perform(MockMvcRequestBuilders.get("/widget").accept(MediaType.APPLICATION_XML))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/xml;charset=UTF-8"))
+				.andExpect(xpath("/Widget/color").string("Green"))
+				.andExpect(xpath("/Widget/x").string("10"))
+				.andExpect(xpath("/Widget/y").string("7"));
+	}
 }
