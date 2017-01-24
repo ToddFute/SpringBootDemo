@@ -6,15 +6,15 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-//@SpringBootApplication
-@RestController
-@EnableAutoConfiguration
+@SpringBootApplication
+//@RestController
+//@EnableAutoConfiguration
 public class DemoApplication {
 
-	@RequestMapping("/")
-	String home() {
-		return "Greetings from Spring Boot!";
-	}
+//	@RequestMapping("/")
+//	String home() {
+//		return "Greetings from Spring Boot!";
+//	}
 
 	public static void main(String[] args) {
 		SpringApplication.run(DemoApplication.class, args);
