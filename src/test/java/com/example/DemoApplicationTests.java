@@ -46,4 +46,24 @@ public class DemoApplicationTests {
 				.andExpect(xpath("/Widget/x").string("10"))
 				.andExpect(xpath("/Widget/y").string("7"));
 	}
+
+	@Test
+	public void postWidgetGetXml() throws Exception {
+		mvc.perform(MockMvcRequestBuilders.post("/widget/color/blue").accept(MediaType.APPLICATION_XML))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/xml;charset=UTF-8"))
+				.andExpect(xpath("/Widget/color").string("blue"))
+				.andExpect(xpath("/Widget/x").string("10"))
+				.andExpect(xpath("/Widget/y").string("7"));
+	}
+
+	@Test
+	public void postWidgetGetJson() throws Exception {
+		mvc.perform(MockMvcRequestBuilders.post("/widget/color/blue").accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$.color", is("blue")))
+				.andExpect(jsonPath("$.x", is(10)))
+				.andExpect(jsonPath("$.y", is(7)));
+	}
 }
