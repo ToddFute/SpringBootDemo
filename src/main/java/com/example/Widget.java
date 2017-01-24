@@ -8,6 +8,9 @@ public class Widget {
     private int x;
     private int y;
 
+    public Widget() {
+    }
+
     public Widget(String color, int x, int y) {
         this.color = color;
         this.x = x;
