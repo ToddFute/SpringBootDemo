@@ -13,6 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -26,6 +27,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class DemoApplicationTests {
 	private final static String APPLICATION_XML_UTF8 = "application/xml;charset=UTF-8";
 
+	// Use http://www.freeformatter.com/xpath-tester.html#ad-output to test xpath
+
 	@Autowired
 	private MockMvc mvc;
 
@@ -33,7 +36,6 @@ public class DemoApplicationTests {
 		try {
 			final ObjectMapper mapper = new ObjectMapper();
 			final String jsonContent = mapper.writeValueAsString(obj);
-			System.out.println("Returning "+jsonContent);
 			return jsonContent;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -45,9 +47,7 @@ public class DemoApplicationTests {
 		mvc.perform(MockMvcRequestBuilders.get("/widget").accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-				.andExpect(jsonPath("$.color", is("Green")))
-				.andExpect(jsonPath("$.x", is(10)))
-				.andExpect(jsonPath("$.y", is(7)));
+				.andExpect(jsonPath("$..[?(@.color==\"Magenta\")]", hasSize(1)));
 	}
 
 	@Test
@@ -55,9 +55,7 @@ public class DemoApplicationTests {
 		mvc.perform(MockMvcRequestBuilders.get("/widget").accept(MediaType.APPLICATION_XML))
 				.andExpect(status().isOk())
 				.andExpect(content().contentType(APPLICATION_XML_UTF8))
-				.andExpect(xpath("/Widget/color").string("Green"))
-				.andExpect(xpath("/Widget/x").string("10"))
-				.andExpect(xpath("/Widget/y").string("7"));
+				.andExpect(xpath("count(//color[text()=\"Cyan\"])").string("1"));
 	}
 
 	@Test
