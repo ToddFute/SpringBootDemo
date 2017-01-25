@@ -1,0 +1,65 @@
+diff --git a/pom.xml b/pom.xml
+index bd9014f..0e2a744 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -26,6 +26,11 @@
+ 
+ 	<dependencies>
+ 		<dependency>
++			<groupId>com.fasterxml.jackson.dataformat</groupId>
++			<artifactId>jackson-dataformat-xml</artifactId>
++		</dependency>
++
++		<dependency>
+ 			<groupId>org.springframework.boot</groupId>
+ 			<artifactId>spring-boot-starter-web</artifactId>
+ 		</dependency>
+diff --git a/src/main/java/com/example/WidgetController.java b/src/main/java/com/example/WidgetController.java
+index 8d08a31..79ffd43 100644
+--- a/src/main/java/com/example/WidgetController.java
++++ b/src/main/java/com/example/WidgetController.java
+@@ -11,7 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
+ @RestController
+ @RequestMapping("/widget")
+ public class WidgetController {
+-    @RequestMapping(method = RequestMethod.GET, produces = {MediaType.APPLICATION_JSON_VALUE})
++    // @RequestMapping(method = RequestMethod.GET, produces = {MediaType.APPLICATION_JSON_VALUE})
++    @RequestMapping(method = RequestMethod.GET, produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+     public Widget index() {
+         return new Widget("Green", 10, 7);
+     }
+diff --git a/src/test/java/com/example/DemoApplicationTests.java b/src/test/java/com/example/DemoApplicationTests.java
+index 34b0b91..8b3cb56 100644
+--- a/src/test/java/com/example/DemoApplicationTests.java
++++ b/src/test/java/com/example/DemoApplicationTests.java
+@@ -15,6 +15,7 @@ import static org.hamcrest.Matchers.is;
+ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
++import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.xpath;
+ 
+ 
+ @ContextConfiguration(classes = DemoApplication.class)
+@@ -27,7 +28,7 @@ public class DemoApplicationTests {
+ 	private MockMvc mvc;
+ 
+ 	@Test
+-	public void getHello() throws Exception {
++	public void getWidget() throws Exception {
+ 		mvc.perform(MockMvcRequestBuilders.get("/widget").accept(MediaType.APPLICATION_JSON))
+ 				.andExpect(status().isOk())
+ 				.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+@@ -36,4 +37,13 @@ public class DemoApplicationTests {
+ 				.andExpect(jsonPath("$.y", is(7)));
+ 	}
+ 
++	@Test
++	public void getWidgetAsXml() throws Exception {
++		mvc.perform(MockMvcRequestBuilders.get("/widget").accept(MediaType.APPLICATION_XML))
++				.andExpect(status().isOk())
++				.andExpect(content().contentType("application/xml;charset=UTF-8"))
++				.andExpect(xpath("/Widget/color").string("Green"))
++				.andExpect(xpath("/Widget/x").string("10"))
++				.andExpect(xpath("/Widget/y").string("7"));
++	}
+ }

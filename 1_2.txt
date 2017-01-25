@@ -1,0 +1,40 @@
+diff --git a/pom.xml b/pom.xml
+index 3401a14..bd9014f 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -27,7 +27,7 @@
+ 	<dependencies>
+ 		<dependency>
+ 			<groupId>org.springframework.boot</groupId>
+-			<artifactId>spring-boot-starter</artifactId>
++			<artifactId>spring-boot-starter-web</artifactId>
+ 		</dependency>
+ 
+ 		<dependency>
+diff --git a/src/main/java/com/example/DemoApplication.java b/src/main/java/com/example/DemoApplication.java
+index 6fce789..a2a1690 100644
+--- a/src/main/java/com/example/DemoApplication.java
++++ b/src/main/java/com/example/DemoApplication.java
+@@ -1,11 +1,21 @@
+ package com.example;
+ 
+ import org.springframework.boot.SpringApplication;
++import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+ import org.springframework.boot.autoconfigure.SpringBootApplication;
++import org.springframework.web.bind.annotation.RequestMapping;
++import org.springframework.web.bind.annotation.RestController;
+ 
+-@SpringBootApplication
++//@SpringBootApplication
++@RestController
++@EnableAutoConfiguration
+ public class DemoApplication {
+ 
++	@RequestMapping("/")
++	String home() {
++		return "Hello World!";
++	}
++
+ 	public static void main(String[] args) {
+ 		SpringApplication.run(DemoApplication.class, args);
+ 	}

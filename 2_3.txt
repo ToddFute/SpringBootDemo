@@ -1,0 +1,52 @@
+diff --git a/src/main/java/com/example/DemoApplication.java b/src/main/java/com/example/DemoApplication.java
+index a2a1690..38eb873 100644
+--- a/src/main/java/com/example/DemoApplication.java
++++ b/src/main/java/com/example/DemoApplication.java
+@@ -13,7 +13,7 @@ public class DemoApplication {
+ 
+ 	@RequestMapping("/")
+ 	String home() {
+-		return "Hello World!";
++		return "Greetings from Spring Boot!";
+ 	}
+ 
+ 	public static void main(String[] args) {
+diff --git a/src/test/java/com/example/DemoApplicationTests.java b/src/test/java/com/example/DemoApplicationTests.java
+index 5ad5ac2..4666e58 100644
+--- a/src/test/java/com/example/DemoApplicationTests.java
++++ b/src/test/java/com/example/DemoApplicationTests.java
+@@ -2,15 +2,33 @@ package com.example;
+ 
+ import org.junit.Test;
+ import org.junit.runner.RunWith;
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+ import org.springframework.boot.test.context.SpringBootTest;
++import org.springframework.http.MediaType;
++import org.springframework.test.context.ContextConfiguration;
+ import org.springframework.test.context.junit4.SpringRunner;
++import org.springframework.test.web.servlet.MockMvc;
++import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
++import static org.hamcrest.Matchers.equalTo;
++import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
++import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+ 
++
++@ContextConfiguration(classes = DemoApplication.class)
+ @RunWith(SpringRunner.class)
+ @SpringBootTest
++@AutoConfigureMockMvc
+ public class DemoApplicationTests {
+ 
++	@Autowired
++	private MockMvc mvc;
++
+ 	@Test
+-	public void contextLoads() {
++	public void getHello() throws Exception {
++		mvc.perform(MockMvcRequestBuilders.get("/").accept(MediaType.APPLICATION_JSON))
++				.andExpect(status().isOk())
++				.andExpect(content().string(equalTo("Greetings from Spring Boot!")));
+ 	}
+ 
+ }

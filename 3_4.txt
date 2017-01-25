@@ -1,0 +1,115 @@
+diff --git a/src/main/java/com/example/DemoApplication.java b/src/main/java/com/example/DemoApplication.java
+index 38eb873..247c817 100644
+--- a/src/main/java/com/example/DemoApplication.java
++++ b/src/main/java/com/example/DemoApplication.java
+@@ -6,15 +6,15 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
+ import org.springframework.web.bind.annotation.RequestMapping;
+ import org.springframework.web.bind.annotation.RestController;
+ 
+-//@SpringBootApplication
+-@RestController
+-@EnableAutoConfiguration
++@SpringBootApplication
++//@RestController
++//@EnableAutoConfiguration
+ public class DemoApplication {
+ 
+-	@RequestMapping("/")
+-	String home() {
+-		return "Greetings from Spring Boot!";
+-	}
++//	@RequestMapping("/")
++//	String home() {
++//		return "Greetings from Spring Boot!";
++//	}
+ 
+ 	public static void main(String[] args) {
+ 		SpringApplication.run(DemoApplication.class, args);
+diff --git a/src/main/java/com/example/Widget.java b/src/main/java/com/example/Widget.java
+new file mode 100644
+index 0000000..d36d27d
+--- /dev/null
++++ b/src/main/java/com/example/Widget.java
+@@ -0,0 +1,28 @@
++package com.example;
++
++/**
++ * Created by tbradfute on 1/24/17.
++ */
++public class Widget {
++    private String color;
++    private int x;
++    private int y;
++
++    public Widget(String color, int x, int y) {
++        this.color = color;
++        this.x = x;
++        this.y = y;
++    }
++
++    public String getColor() {
++        return color;
++    }
++
++    public int getX() {
++        return x;
++    }
++
++    public int getY() {
++        return y;
++    }
++}
+diff --git a/src/main/java/com/example/WidgetController.java b/src/main/java/com/example/WidgetController.java
+new file mode 100644
+index 0000000..8d08a31
+--- /dev/null
++++ b/src/main/java/com/example/WidgetController.java
+@@ -0,0 +1,18 @@
++package com.example;
++
++import org.springframework.http.MediaType;
++import org.springframework.web.bind.annotation.RequestMapping;
++import org.springframework.web.bind.annotation.RequestMethod;
++import org.springframework.web.bind.annotation.RestController;
++
++/**
++ * Created by tbradfute on 1/24/17.
++ */
++@RestController
++@RequestMapping("/widget")
++public class WidgetController {
++    @RequestMapping(method = RequestMethod.GET, produces = {MediaType.APPLICATION_JSON_VALUE})
++    public Widget index() {
++        return new Widget("Green", 10, 7);
++    }
++}
+diff --git a/src/test/java/com/example/DemoApplicationTests.java b/src/test/java/com/example/DemoApplicationTests.java
+index 4666e58..34b0b91 100644
+--- a/src/test/java/com/example/DemoApplicationTests.java
++++ b/src/test/java/com/example/DemoApplicationTests.java
+@@ -11,8 +11,10 @@ import org.springframework.test.context.junit4.SpringRunner;
+ import org.springframework.test.web.servlet.MockMvc;
+ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+ import static org.hamcrest.Matchers.equalTo;
++import static org.hamcrest.Matchers.is;
+ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
++import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+ 
+ 
+ @ContextConfiguration(classes = DemoApplication.class)
+@@ -26,9 +28,12 @@ public class DemoApplicationTests {
+ 
+ 	@Test
+ 	public void getHello() throws Exception {
+-		mvc.perform(MockMvcRequestBuilders.get("/").accept(MediaType.APPLICATION_JSON))
++		mvc.perform(MockMvcRequestBuilders.get("/widget").accept(MediaType.APPLICATION_JSON))
+ 				.andExpect(status().isOk())
+-				.andExpect(content().string(equalTo("Greetings from Spring Boot!")));
++				.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
++				.andExpect(jsonPath("$.color", is("Green")))
++				.andExpect(jsonPath("$.x", is(10)))
++				.andExpect(jsonPath("$.y", is(7)));
+ 	}
+ 
+ }

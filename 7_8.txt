@@ -1,0 +1,217 @@
+diff --git a/pom.xml b/pom.xml
+index 0e2a744..16892c3 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -26,6 +26,21 @@
+ 
+ 	<dependencies>
+ 		<dependency>
++			<groupId>org.hamcrest</groupId>
++			<artifactId>hamcrest-all</artifactId>
++			<version>1.3</version>
++		</dependency>
++		<dependency>
++			<groupId>com.h2database</groupId>
++			<artifactId>h2</artifactId>
++		</dependency>
++
++		<dependency>
++			<groupId>org.springframework.boot</groupId>
++			<artifactId>spring-boot-starter-data-jpa</artifactId>
++		</dependency>
++
++		<dependency>
+ 			<groupId>com.fasterxml.jackson.dataformat</groupId>
+ 			<artifactId>jackson-dataformat-xml</artifactId>
+ 		</dependency>
+diff --git a/src/main/java/com/example/DemoApplication.java b/src/main/java/com/example/DemoApplication.java
+index 247c817..80bcbd7 100644
+--- a/src/main/java/com/example/DemoApplication.java
++++ b/src/main/java/com/example/DemoApplication.java
+@@ -1,8 +1,11 @@
+ package com.example;
+ 
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.boot.CommandLineRunner;
+ import org.springframework.boot.SpringApplication;
+ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+ import org.springframework.boot.autoconfigure.SpringBootApplication;
++import org.springframework.context.annotation.Bean;
+ import org.springframework.web.bind.annotation.RequestMapping;
+ import org.springframework.web.bind.annotation.RestController;
+ 
+@@ -19,4 +22,14 @@ public class DemoApplication {
+ 	public static void main(String[] args) {
+ 		SpringApplication.run(DemoApplication.class, args);
+ 	}
++
++	@Bean
++	public CommandLineRunner demo(WidgetRepository repository) {
++		return (args) -> {
++			// save a couple of customers
++			repository.save(new Widget("Cyan", 490, 520));
++			repository.save(new Widget("Magenta", 500, 530));
++			repository.save(new Widget("Yellow", 570, 590));
++		};
++	}
+ }
+diff --git a/src/main/java/com/example/Widget.java b/src/main/java/com/example/Widget.java
+index e004fd8..523fcd8 100644
+--- a/src/main/java/com/example/Widget.java
++++ b/src/main/java/com/example/Widget.java
+@@ -1,14 +1,24 @@
+ package com.example;
+ 
++import javax.persistence.Entity;
++import javax.persistence.GeneratedValue;
++import javax.persistence.GenerationType;
++import javax.persistence.Id;
++
+ /**
+  * Created by tbradfute on 1/24/17.
+  */
++@Entity
+ public class Widget {
++    @Id
++    @GeneratedValue(strategy = GenerationType.AUTO)
++    private Long id;
++
+     private String color;
+     private int x;
+     private int y;
+ 
+-    public Widget() {
++    protected Widget() {
+     }
+ 
+     public Widget(String color, int x, int y) {
+@@ -28,4 +38,11 @@ public class Widget {
+     public int getY() {
+         return y;
+     }
++
++    @Override
++    public String toString() {
++        return String.format(
++                "Widget[id=%d, Color='%s', X='%d', y='%d']",
++                id, color, x, y);
++    }
+ }
+diff --git a/src/main/java/com/example/WidgetController.java b/src/main/java/com/example/WidgetController.java
+index b82b813..24415dd 100644
+--- a/src/main/java/com/example/WidgetController.java
++++ b/src/main/java/com/example/WidgetController.java
+@@ -1,27 +1,40 @@
+ package com.example;
+ 
++import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.http.MediaType;
+ import org.springframework.web.bind.annotation.*;
+ 
++import java.util.ArrayList;
++import java.util.List;
++
+ /**
+  * Created by tbradfute on 1/24/17.
+  */
+ @RestController
+ @RequestMapping("/widget")
+ public class WidgetController {
++
++    @Autowired
++    private WidgetRepository repository;
++
+     // @RequestMapping(method = RequestMethod.GET, produces = {MediaType.APPLICATION_JSON_VALUE})
+     @RequestMapping(method = RequestMethod.GET, produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+-    public Widget index() {
+-        return new Widget("Green", 10, 7);
++    public List<Widget> index() {
++        //return new Widget("Green", 10, 7);
++        List<Widget> l = new ArrayList<Widget>();
++        for (Widget w: repository.findAll()) {
++            l.add(w);
++        }
++        return l;
+     }
+ 
+     @RequestMapping(value="/color/{color}", method = RequestMethod.POST, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+     public Widget setWidgetColor(@PathVariable String color) {
+-        return new Widget(color, 10, 7);
++        return repository.save(new Widget(color, 10, 7));
+     }
+ 
+     @RequestMapping(value = "/position", method = RequestMethod.POST, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+     public Widget setWidgetAll(@RequestBody Widget w) {
+-        return w;
++        return repository.save(w);
+     }
+ }
+diff --git a/src/main/java/com/example/WidgetRepository.java b/src/main/java/com/example/WidgetRepository.java
+new file mode 100644
+index 0000000..2d6317f
+--- /dev/null
++++ b/src/main/java/com/example/WidgetRepository.java
+@@ -0,0 +1,12 @@
++package com.example;
++
++import org.springframework.data.repository.CrudRepository;
++
++import java.util.List;
++
++/**
++ * Created by tbradfute on 1/24/17.
++ */
++public interface WidgetRepository extends CrudRepository<Widget, Long> {
++    List<Widget> findByColor(String color);
++}
+diff --git a/src/test/java/com/example/DemoApplicationTests.java b/src/test/java/com/example/DemoApplicationTests.java
+index 7d92143..e90707e 100644
+--- a/src/test/java/com/example/DemoApplicationTests.java
++++ b/src/test/java/com/example/DemoApplicationTests.java
+@@ -13,6 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
+ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+ import static org.hamcrest.Matchers.equalTo;
+ import static org.hamcrest.Matchers.is;
++import static org.hamcrest.Matchers.hasSize;
+ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+@@ -26,6 +27,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
+ public class DemoApplicationTests {
+ 	private final static String APPLICATION_XML_UTF8 = "application/xml;charset=UTF-8";
+ 
++	// Use http://www.freeformatter.com/xpath-tester.html#ad-output to test xpath
++
+ 	@Autowired
+ 	private MockMvc mvc;
+ 
+@@ -33,7 +36,6 @@ public class DemoApplicationTests {
+ 		try {
+ 			final ObjectMapper mapper = new ObjectMapper();
+ 			final String jsonContent = mapper.writeValueAsString(obj);
+-			System.out.println("Returning "+jsonContent);
+ 			return jsonContent;
+ 		} catch (Exception e) {
+ 			throw new RuntimeException(e);
+@@ -45,9 +47,7 @@ public class DemoApplicationTests {
+ 		mvc.perform(MockMvcRequestBuilders.get("/widget").accept(MediaType.APPLICATION_JSON))
+ 				.andExpect(status().isOk())
+ 				.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+-				.andExpect(jsonPath("$.color", is("Green")))
+-				.andExpect(jsonPath("$.x", is(10)))
+-				.andExpect(jsonPath("$.y", is(7)));
++				.andExpect(jsonPath("$..[?(@.color==\"Magenta\")]", hasSize(1)));
+ 	}
+ 
+ 	@Test
+@@ -55,9 +55,7 @@ public class DemoApplicationTests {
+ 		mvc.perform(MockMvcRequestBuilders.get("/widget").accept(MediaType.APPLICATION_XML))
+ 				.andExpect(status().isOk())
+ 				.andExpect(content().contentType(APPLICATION_XML_UTF8))
+-				.andExpect(xpath("/Widget/color").string("Green"))
+-				.andExpect(xpath("/Widget/x").string("10"))
+-				.andExpect(xpath("/Widget/y").string("7"));
++				.andExpect(xpath("count(//color[text()=\"Cyan\"])").string("1"));
+ 	}
+ 
+ 	@Test
